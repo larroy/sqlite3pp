@@ -9,3 +9,10 @@ Improvements over the original sqlite3pp:
 - C99 integer support
 - boolean support
 - improved exception throwing in destructors
+
+
+## Documentation
+
+Original documentation:
+https://code.google.com/p/sqlite3pp/wiki/UsagePage
+
