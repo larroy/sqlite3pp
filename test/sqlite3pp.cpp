@@ -49,6 +49,7 @@ BOOST_AUTO_TEST_CASE(test_get)
     ins.bind(":v1", i).bind(":v2", t).bind(":v3", b.c_str(), b.size());
     ins.execute();
 
+    // check tha behaviour of blob and string are the same
     query q(db, "SELECT * FROM test");
     BOOST_CHECK_EQUAL(q.column_count(), 3);
     for (const auto& r: q)
@@ -63,3 +64,18 @@ BOOST_AUTO_TEST_CASE(test_get)
     }
 }
 
+
+BOOST_AUTO_TEST_CASE(test_error_throw)
+{
+    database db(":memory:");
+    command(db, "CREATE TABLE test (i INTEGER PRIMARY KEY)").execute();
+    command ins(db, "INSERT INTO test (i) VALUES (:vi)");
+    ins.bind(":vi", 1);
+    ins.execute();
+
+    command ins2(db);
+    ins2.prepare("INSERT INTO test (i) VALUES (:vi)");
+    ins2.bind(":vi", 1);
+
+    BOOST_CHECK_THROW(ins2.execute(), database_error);
+}
