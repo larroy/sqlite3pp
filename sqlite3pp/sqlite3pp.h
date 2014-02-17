@@ -139,6 +139,8 @@ namespace sqlite3pp
         statement& bind(char const* name, std::nullptr_t);
 
         int step();
+
+        /// reset a prepared statement ready to be re-executed, doesn't reset bindings
         statement& reset();
 
         statement(statement&&);
