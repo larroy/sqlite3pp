@@ -45,7 +45,7 @@ namespace sqlite3pp
 
     int enable_shared_cache(bool fenable);
 
-    class database : boost::noncopyable
+    class database
     {
         friend class statement;
         friend class database_error;
@@ -59,11 +59,15 @@ namespace sqlite3pp
         typedef boost::function<void (int, char const*, char const*, long long int)> update_handler;
         typedef boost::function<int (int, char const*, char const*, char const*, char const*)> authorize_handler;
 
-        explicit database(char const* dbname = 0);
+        explicit database(char const* dbname = nullptr);
+        database(const database&) = delete;
+        database& operator=(const database&) = delete;
+        database(database&&);
+        database& operator=(database&&);
         ~database();
 
         int connect(char const* dbname);
-        int connect_v2(char const* dbname, int flags, char const* vfs = 0);
+        int connect_v2(char const* dbname, int flags, char const* vfs = nullptr);
         int disconnect();
 
         int attach(char const* dbname, char const* name);
@@ -152,7 +156,7 @@ namespace sqlite3pp
 
 
      protected:
-        explicit statement(database& db, char const* stmt = 0);
+        explicit statement(database& db, char const* stmt = nullptr);
         ~statement();
 
 
@@ -189,7 +193,7 @@ namespace sqlite3pp
             int idx_;
         };
 
-        explicit command(database& db, char const* stmt = 0);
+        explicit command(database& db, char const* stmt = nullptr);
 
         bindstream binder(int idx = 1);
 
@@ -310,7 +314,7 @@ namespace sqlite3pp
             int rc_;
         };
 
-        explicit query(database& db, char const* stmt = 0);
+        explicit query(database& db, char const* stmt = nullptr);
 
         int column_count() const;
 

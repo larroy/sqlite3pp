@@ -79,3 +79,12 @@ BOOST_AUTO_TEST_CASE(test_error_throw)
 
     BOOST_CHECK_THROW(ins2.execute(), database_error);
 }
+
+
+BOOST_AUTO_TEST_CASE(db_move)
+{
+    database db(":memory:");
+    database db2(move(db));
+    vector<database> vd;
+    vd.emplace_back(":memory:");
+}
