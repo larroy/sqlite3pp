@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "sqlite3pp.h"
+#include "sqlite3pp.hpp"
 #include <memory>
 #include <cstdlib>
 #include <cstdio>
