@@ -64,7 +64,6 @@ BOOST_AUTO_TEST_CASE(test_get)
     }
 }
 
-
 BOOST_AUTO_TEST_CASE(test_error_throw)
 {
     database db(":memory:");
@@ -88,3 +87,22 @@ BOOST_AUTO_TEST_CASE(db_move)
     vector<database> vd;
     vd.emplace_back(":memory:");
 }
+
+
+BOOST_AUTO_TEST_CASE(query_fetchone)
+{
+    database db(":memory:");
+    command(db, "CREATE TABLE test (i INTEGER PRIMARY KEY)").execute();
+    command ins(db, "INSERT INTO test (i) VALUES (:vi)");
+    ins.bind(":vi", 1);
+    ins.execute();
+
+    query q2(db, "SELECT * FROM test WHERE i=1");
+    auto row = q2.fetchone();
+    BOOST_CHECK_EQUAL(row.get<int>(0), 1);
+
+
+    query q3(db, "SELECT * FROM test WHERE i=0");
+    BOOST_CHECK_THROW(q3.fetchone(), database_error);
+}
+
