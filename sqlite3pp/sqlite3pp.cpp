@@ -26,7 +26,6 @@
 #include <memory>
 #include <cstdlib>
 #include <cstdio>
-#include <boost/numeric/conversion/cast.hpp>
 
 
 #define THROW_ERR(ret) do { if ((ret) != SQLITE_OK) throw database_error(db_); } while(0);
@@ -526,63 +525,6 @@ namespace sqlite3pp
         return sqlite3_column_bytes(stmt_, idx);
     }
 
-    bool query::rows::get(int idx, bool) const
-    {
-        assert(column_type(idx) == SQLITE_INTEGER);
-        return sqlite3_column_int(stmt_, idx) != 0;
-    }
-
-    double query::rows::get(int idx, double) const
-    {
-        assert(column_type(idx) == SQLITE_FLOAT);
-        return sqlite3_column_double(stmt_, idx);
-    }
-
-    int32_t query::rows::get(int idx, int32_t) const
-    {
-        return boost::numeric_cast<int32_t>(get(idx, int64_t()));
-    }
-
-    uint32_t query::rows::get(int idx, uint32_t) const
-    {
-        return boost::numeric_cast<uint32_t>(get(idx, uint64_t()));
-    }
-
-    int64_t query::rows::get(int idx, int64_t) const
-    {
-        assert(column_type(idx) == SQLITE_INTEGER);
-        return sqlite3_column_int64(stmt_, idx);
-    }
-
-    uint64_t query::rows::get(int idx, uint64_t) const
-    {
-        assert(column_type(idx) == SQLITE_INTEGER);
-        return static_cast<uint64_t>(sqlite3_column_int64(stmt_, idx));
-    }
-
-
-
-    char const* query::rows::get(int idx, char const*) const
-    {
-        assert(column_type(idx) == SQLITE_TEXT);
-        return reinterpret_cast<char const*>(sqlite3_column_text(stmt_, idx));
-    }
-
-    std::string query::rows::get(int idx, std::string) const
-    {
-        assert(column_type(idx) == SQLITE_TEXT || column_type(idx) == SQLITE_BLOB);
-        return std::string(static_cast<const char*>(sqlite3_column_blob(stmt_, idx)), static_cast<size_t>(column_bytes(idx)));
-    }
-
-    void const* query::rows::get(int idx, void const*) const
-    {
-        return sqlite3_column_blob(stmt_, idx);
-    }
-
-    std::nullptr_t query::rows::get(int idx, std::nullptr_t) const
-    {
-        return nullptr;
-    }
     query::rows::getstream query::rows::getter(int idx)
     {
         return getstream(this, idx);
