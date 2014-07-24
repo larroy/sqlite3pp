@@ -44,7 +44,7 @@ namespace sqlite3pp
     template <class T>
     class nullable_wrapper
     {
-        mutable T& val_;
+        T& val_;
         const T& null_value_;
     public:
         explicit nullable_wrapper(T& val, const T& null_value) : val_(val), null_value_(null_value) {}
