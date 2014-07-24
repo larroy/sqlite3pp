@@ -41,6 +41,20 @@ namespace sqlite3pp
     }
 
 
+    template <class T>
+    class nullable_wrapper
+    {
+        mutable T& val_;
+        const T& null_value_;
+    public:
+        explicit nullable_wrapper(T& val, const T& null_value) : val_(val), null_value_(null_value) {}
+        void set(const T& val) const { val_ = val; }
+        const T& null_value() const { return null_value_; }
+    };
+
+    template <class T>
+    inline nullable_wrapper<T> nullable(T& val, const T& null_value) { return nullable_wrapper<T>(val, null_value); }
+
     int enable_shared_cache(bool fenable);
 
     class database
@@ -220,6 +234,13 @@ namespace sqlite3pp
                     return *this;
                 }
 
+                template <class T>
+                getstream& operator >> (const nullable_wrapper<T>& nullable_value) {
+                    nullable_value.set(rws_->get_nullable<T>(idx_, nullable_value.null_value()));
+                    ++idx_;
+                    return *this;
+                }
+
              private:
                 rows* rws_;
                 int idx_;
@@ -232,6 +253,14 @@ namespace sqlite3pp
             int column_count() const;
 
             int column_bytes(int idx) const;
+
+            template <class T> T get_nullable(int idx, const T& null_value) const
+            {
+                if (column_type(idx) == SQLITE_NULL) {
+                    return null_value;
+                }
+                return get<T>(idx);
+            }
 
             template <class T> T get(int idx) const {
                 return get(idx, T());
