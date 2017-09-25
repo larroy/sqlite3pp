@@ -112,12 +112,14 @@ namespace sqlite3pp
         return sqlite3_open(dbname, &db_);
     }
 
+#if SQLITE_VERSION_NUMBER >= 3005000
     int database::connect_v2(char const* dbname, int flags, char const* vfs)
     {
         disconnect();
 
         return sqlite3_open_v2(dbname, &db_, flags, vfs);
     }
+#endif
 
     int database::disconnect()
     {
@@ -260,7 +262,11 @@ namespace sqlite3pp
 
     int statement::prepare_impl(char const* stmt)
     {
+#if SQLITE_VERSION_NUMBER >= 3003009
         return sqlite3_prepare_v2(db_.db_, stmt, strlen(stmt), &stmt_, &tail_);
+#else
+        return sqlite3_prepare(db_.db_, stmt, strlen(stmt), &stmt_, &tail_);
+#endif
     }
 
     void statement::finish()

@@ -65,7 +65,9 @@ namespace sqlite3pp
         ~database();
 
         int connect(char const* dbname);
+#if SQLITE_VERSION_NUMBER >= 3005000
         int connect_v2(char const* dbname, int flags, char const* vfs = nullptr);
+#endif
         int disconnect();
 
         int attach(char const* dbname, char const* name);
