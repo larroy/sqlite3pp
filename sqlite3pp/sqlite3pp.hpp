@@ -31,6 +31,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/function.hpp>
 #include <cstdint>
+#include <boost/numeric/conversion/cast.hpp>
 
 namespace sqlite3pp
 {
@@ -231,7 +232,7 @@ namespace sqlite3pp
 
                 template <class T>
                 getstream& operator >> (T& value) {
-                    value = rws_->get(idx_, T());
+                    value = rws_->get<T>(idx_);
                     ++idx_;
                     return *this;
                 }
@@ -265,62 +266,53 @@ namespace sqlite3pp
             }
 
             template <class T> T get(int idx) const {
-                return get(idx, T());
+                // the implementations are in template specializations below
+                // the default implementation will result in a compile time error if the wrong type is used
+                BOOST_MPL_ASSERT_MSG(false, UNSUPPORTED_TYPE, (T));
+                return T();
             }
 
             template <class T1>
             boost::tuple<T1> get_columns(int idx1) const {
-                return boost::make_tuple(get(idx1, T1()));
+                return boost::make_tuple(get<T1>(idx1));
             }
 
             template <class T1, class T2>
             boost::tuple<T1, T2> get_columns(int idx1, int idx2) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2));
             }
 
             template <class T1, class T2, class T3>
             boost::tuple<T1, T2, T3> get_columns(int idx1, int idx2, int idx3) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3));
             }
 
             template <class T1, class T2, class T3, class T4>
             boost::tuple<T1, T2, T3, T4> get_columns(int idx1, int idx2, int idx3, int idx4) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()), get(idx4, T4()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3), get<T4>(idx4));
             }
 
             template <class T1, class T2, class T3, class T4, class T5>
             boost::tuple<T1, T2, T3, T4, T5> get_columns(int idx1, int idx2, int idx3, int idx4, int idx5) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()), get(idx4, T4()), get(idx5, T5()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3), get<T4>(idx4), get<T5>(idx5));
             }
 
             template <class T1, class T2, class T3, class T4, class T5, class T6>
             boost::tuple<T1, T2, T3, T4, T5, T6> get_columns(int idx1, int idx2, int idx3, int idx4, int idx5, int idx6) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()), get(idx4, T4()), get(idx5, T5()), get(idx6, T6()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3), get<T4>(idx4), get<T5>(idx5), get<T6>(idx6));
             }
 
             template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
             boost::tuple<T1, T2, T3, T4, T5, T6, T7> get_columns(int idx1, int idx2, int idx3, int idx4, int idx5, int idx6, int idx7) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()), get(idx4, T4()), get(idx5, T5()), get(idx6, T6()), get(idx7, T7()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3), get<T4>(idx4), get<T5>(idx5), get<T6>(idx6), get<T7>(idx7));
             }
 
             template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
             boost::tuple<T1, T2, T3, T4, T5, T6, T7, T8> get_columns(int idx1, int idx2, int idx3, int idx4, int idx5, int idx6, int idx7, int idx8) const {
-                return boost::make_tuple(get(idx1, T1()), get(idx2, T2()), get(idx3, T3()), get(idx4, T4()), get(idx5, T5()), get(idx6, T6()), get(idx7, T7()), get(idx8, T8()));
+                return boost::make_tuple(get<T1>(idx1), get<T2>(idx2), get<T3>(idx3), get<T4>(idx4), get<T5>(idx5), get<T6>(idx6), get<T7>(idx7), get<T8>(idx8));
             }
 
             getstream getter(int idx = 0);
-
-         private:
-            bool get(int idx, bool) const;
-            double get(int idx, double) const;
-            int32_t get(int idx, int32_t) const;
-            uint32_t get(int idx, uint32_t) const;
-            int64_t get(int idx, int64_t) const;
-            uint64_t get(int idx, uint64_t) const;
-            char const* get(int idx, char const*) const;
-            std::string get(int idx, std::string) const;
-            void const* get(int idx, void const*) const;
-            std::nullptr_t get(int idx, std::nullptr_t) const;
 
          private:
             sqlite3_stmt* stmt_;
@@ -360,6 +352,62 @@ namespace sqlite3pp
         iterator begin();
         iterator end();
     };
+
+    template <> inline bool query::rows::get<bool>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_INTEGER);
+        return sqlite3_column_int(stmt_, idx) != 0;
+    }
+
+    template <> inline double query::rows::get<double>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_FLOAT);
+        return sqlite3_column_double(stmt_, idx);
+    }
+
+    template <> inline int64_t query::rows::get<int64_t>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_INTEGER);
+        return sqlite3_column_int64(stmt_, idx);
+    }
+
+    template <> inline uint64_t query::rows::get<uint64_t>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_INTEGER);
+        return static_cast<uint64_t>(sqlite3_column_int64(stmt_, idx));
+    }
+
+    template <> inline int32_t query::rows::get<int32_t>(int idx) const
+    {
+        return boost::numeric_cast<int32_t>(get<int64_t>(idx));
+    }
+
+    template <> inline uint32_t query::rows::get<uint32_t>(int idx) const
+    {
+        return boost::numeric_cast<uint32_t>(get<uint64_t>(idx));
+    }
+
+    template <> inline char const* query::rows::get<char const*>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_TEXT);
+        return reinterpret_cast<char const*>(sqlite3_column_text(stmt_, idx));
+    }
+
+    template <> inline std::string query::rows::get<std::string>(int idx) const
+    {
+        assert(column_type(idx) == SQLITE_TEXT || column_type(idx) == SQLITE_BLOB);
+        return std::string(static_cast<const char*>(sqlite3_column_blob(stmt_, idx)), static_cast<size_t>(column_bytes(idx)));
+    }
+
+    template <> inline void const* query::rows::get<void const*>(int idx) const
+    {
+        return sqlite3_column_blob(stmt_, idx);
+    }
+
+    template <> inline std::nullptr_t query::rows::get<std::nullptr_t>(int idx) const
+    {
+        return nullptr;
+    }
 
     class transaction : boost::noncopyable
     {
